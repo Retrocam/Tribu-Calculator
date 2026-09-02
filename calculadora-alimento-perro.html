@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calculadora de porción diaria - Tribu Natural de La Sabana</title>
+<style>
+  :root {
+    --brand: #81b927;
+    --brand-dark: #649115;
+    --text-primary: #222222;
+    --text-secondary: #666666;
+    --text-muted: #999999;
+    --border: #dddddd;
+    --surface: #ffffff;
+    --surface-muted: #f6f7f4;
+    --danger: #c0392b;
+    --radius: 8px;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    background: #eef0ea;
+    color: var(--text-primary);
+    margin: 0;
+    padding: 24px 16px;
+    display: flex;
+    justify-content: center;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    max-width: 420px;
+    width: 100%;
+  }
+
+  .card-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+
+  .card-header h1 {
+    font-size: 17px;
+    font-weight: 600;
+    margin: 0;
+  }
+
+  .field {
+    margin-bottom: 14px;
+  }
+
+  .field label {
+    display: block;
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-bottom: 4px;
+  }
+
+  .field input,
+  .field select {
+    width: 100%;
+    padding: 9px 10px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    font-size: 14px;
+    background: var(--surface);
+    color: var(--text-primary);
+  }
+
+  .field input:focus,
+  .field select:focus {
+    outline: none;
+    border-color: var(--brand);
+    box-shadow: 0 0 0 2px rgba(129, 185, 39, 0.2);
+  }
+
+  .field-error {
+    display: none;
+    font-size: 12px;
+    color: var(--danger);
+    margin-top: 4px;
+  }
+
+  .field.has-error input,
+  .field.has-error select {
+    border-color: var(--danger);
+  }
+
+  .field.has-error .field-error {
+    display: block;
+  }
+
+  .row {
+    display: flex;
+    gap: 8px;
+  }
+
+  .row .field {
+    flex: 1;
+  }
+
+  .info-box {
+    background: var(--surface-muted);
+    border-radius: var(--radius);
+    padding: 10px 12px;
+    font-size: 12.5px;
+    color: var(--text-secondary);
+    margin-bottom: 14px;
+  }
+
+  .adult-only {
+    transition: opacity 0.15s ease;
+  }
+
+  .adult-only.hidden-field {
+    display: none;
+  }
+
+  button#calc-btn {
+    width: 100%;
+    padding: 12px;
+    background: var(--brand);
+    color: #ffffff;
+    border: none;
+    border-radius: var(--radius);
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 6px;
+  }
+
+  button#calc-btn:hover {
+    background: var(--brand-dark);
+  }
+
+  button#calc-btn:active {
+    transform: scale(0.99);
+  }
+
+  .result {
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+    display: none;
+    text-align: center;
+  }
+
+  .result.visible {
+    display: block;
+  }
+
+  .result-label {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin: 0 0 6px;
+    font-weight: 700;
+  }
+
+  .result-value {
+    font-size: 40px;
+    font-weight: 700;
+    color: var(--brand-dark);
+    margin: 0;
+    line-height: 1.1;
+  }
+
+  .result-value span {
+    font-size: 16px;
+    font-weight: 400;
+    color: var(--text-secondary);
+  }
+
+  .result-meals {
+    font-size: 14px;
+    color: var(--text-secondary);
+    margin: 10px 0 0;
+    font-weight: 700;
+  }
+
+  .result-meals strong {
+    color: var(--text-primary);
+    font-weight: 600;
+  }
+
+  .result-note {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin: 10px 0 0;
+  }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <div class="card-header">
+    <h1>Calculadora de porción diaria</h1>
+  </div>
+
+  <form id="calc-form" novalidate>
+
+    <div class="field" id="field-peso">
+      <label for="peso">Peso (kg)</label>
+      <input type="number" id="peso" step="0.1" min="0.1" max="100" placeholder="ej. 10">
+      <div class="field-error">Ingresa un peso válido (entre 0.1 y 100 kg).</div>
+    </div>
+
+    <div class="row">
+      <div class="field" id="field-edad-valor">
+        <label for="edad-valor">Edad</label>
+        <input type="number" id="edad-valor" step="1" min="0" placeholder="ej. 3">
+        <div class="field-error">Ingresa una edad válida.</div>
+      </div>
+      <div class="field">
+        <label for="edad-unidad">Unidad</label>
+        <select id="edad-unidad">
+          <option value="meses">Meses</option>
+          <option value="anios">Años</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="raza">Raza (opcional, solo referencia)</label>
+      <select id="raza">
+        <option value="">Selecciona una raza</option>
+        <option value="labrador">Labrador retriever</option>
+        <option value="pastor_aleman">Pastor alemán</option>
+        <option value="bulldog_frances">Bulldog francés</option>
+        <option value="poodle">Poodle</option>
+        <option value="chihuahua">Chihuahua</option>
+        <option value="criollo">Criollo / mestizo</option>
+        <option value="otra">Otra</option>
+      </select>
+    </div>
+
+    <div class="info-box" id="puppy-note" style="display:none;">
+      Para cachorros se usa una porción de crecimiento estándar según su etapa. Los campos de esterilización y actividad no aplican.
+    </div>
+
+    <div class="field adult-only" id="field-esterilizado">
+      <label for="esterilizado">¿Está esterilizado/a?</label>
+      <select id="esterilizado">
+        <option value="si">Sí</option>
+        <option value="no">No</option>
+      </select>
+    </div>
+
+    <div class="field adult-only" id="field-actividad">
+      <label for="actividad">Nivel de actividad</label>
+      <select id="actividad">
+        <option value="sedentario">Sedentario / poco activo</option>
+        <option value="normal" selected>Normal / moderado</option>
+        <option value="activo">Activo / muy activo</option>
+      </select>
+    </div>
+
+    <button type="submit" id="calc-btn">Calcular porción</button>
+  </form>
+
+  <div class="result" id="result">
+    <p class="result-label">Porción diaria recomendada</p>
+    <p class="result-value"><span id="result-grams">0</span><span> g / día</span></p>
+    <p class="result-meals"><strong id="result-per-meal">0 g</strong> por comida &middot; <span id="result-meals-count">2</span> comidas/día</p>
+    <p class="result-note">Calculado para Tribu Natural de La Sabana (136 kcal/100g). Este resultado es una guía general; ante dudas específicas de salud, consulta a tu veterinario.</p>
+  </div>
+</div>
+
+<script>
+(function () {
+  var KCAL_PER_100G = 136;
+
+  var form = document.getElementById('calc-form');
+  var pesoInput = document.getElementById('peso');
+  var edadValorInput = document.getElementById('edad-valor');
+  var edadUnidadInput = document.getElementById('edad-unidad');
+  var esterilizadoInput = document.getElementById('esterilizado');
+  var actividadInput = document.getElementById('actividad');
+  var puppyNote = document.getElementById('puppy-note');
+  var adultOnlyFields = document.querySelectorAll('.adult-only');
+  var resultBox = document.getElementById('result');
+  var resultGrams = document.getElementById('result-grams');
+  var resultPerMeal = document.getElementById('result-per-meal');
+  var resultMealsCount = document.getElementById('result-meals-count');
+
+  function getComidasPorDia(etapa) {
+    if (etapa === 'cachorro_temprano') return 4;
+    if (etapa === 'cachorro_tardio') return 3;
+    return 2;
+  }
+
+  function edadEnMeses() {
+    var valor = parseFloat(edadValorInput.value);
+    if (isNaN(valor)) return null;
+    return edadUnidadInput.value === 'anios' ? valor * 12 : valor;
+  }
+
+  function getEtapa(meses) {
+    if (meses === null) return null;
+    if (meses < 4) return 'cachorro_temprano';
+    if (meses < 12) return 'cachorro_tardio';
+    return 'adulto';
+  }
+
+  function actualizarVisibilidadCampos() {
+    var meses = edadEnMeses();
+    var etapa = getEtapa(meses);
+    var esCachorro = etapa === 'cachorro_temprano' || etapa === 'cachorro_tardio';
+
+    adultOnlyFields.forEach(function (el) {
+      el.classList.toggle('hidden-field', esCachorro);
+    });
+    puppyNote.style.display = esCachorro ? 'block' : 'none';
+  }
+
+  edadValorInput.addEventListener('input', actualizarVisibilidadCampos);
+  edadUnidadInput.addEventListener('change', actualizarVisibilidadCampos);
+
+  function setError(fieldEl, hasError) {
+    fieldEl.classList.toggle('has-error', hasError);
+  }
+
+  function validar() {
+    var valido = true;
+
+    var peso = parseFloat(pesoInput.value);
+    var pesoValido = !isNaN(peso) && peso > 0 && peso <= 100;
+    setError(document.getElementById('field-peso'), !pesoValido);
+    if (!pesoValido) valido = false;
+
+    var meses = edadEnMeses();
+    var edadValida = meses !== null && meses >= 0;
+    setError(document.getElementById('field-edad-valor'), !edadValida);
+    if (!edadValida) valido = false;
+
+    return valido ? peso : null;
+  }
+
+  function calcularGramos(pesoKg) {
+    var meses = edadEnMeses();
+    var etapa = getEtapa(meses);
+    var rer = 70 * Math.pow(pesoKg, 0.75);
+    var factorTotal;
+
+    if (etapa === 'cachorro_temprano') {
+      factorTotal = 3.0;
+    } else if (etapa === 'cachorro_tardio') {
+      factorTotal = 2.0;
+    } else {
+      var factorEsterilizacion = esterilizadoInput.value === 'si' ? 1.6 : 1.8;
+      var ajusteActividad = { sedentario: 0.8, normal: 1.0, activo: 1.2 }[actividadInput.value];
+      factorTotal = factorEsterilizacion * ajusteActividad;
+    }
+
+    var mer = rer * factorTotal;
+    var gramos = (mer / KCAL_PER_100G) * 100;
+    return Math.round(gramos);
+  }
+
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var peso = validar();
+    if (peso === null) {
+      resultBox.classList.remove('visible');
+      return;
+    }
+    var gramos = calcularGramos(peso);
+    var etapa = getEtapa(edadEnMeses());
+    var comidas = getComidasPorDia(etapa);
+    var porComida = Math.round(gramos / comidas);
+
+    resultGrams.textContent = gramos.toLocaleString('es-CO');
+    resultPerMeal.textContent = porComida.toLocaleString('es-CO') + ' g';
+    resultMealsCount.textContent = comidas;
+    resultBox.classList.add('visible');
+  });
+
+  actualizarVisibilidadCampos();
+})();
+</script>
+
+</body>
+</html>
