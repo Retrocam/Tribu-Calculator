@@ -20,6 +20,7 @@ var KCAL_PER_100G = 136;
   var resultGrams = document.getElementById('result-grams');
   var resultPerMeal = document.getElementById('result-per-meal');
   var resultMealsCount = document.getElementById('result-meals-count');
+  var resultPackages = document.getElementById('result-packages');
 
   // Botones de esterilización
   document.querySelectorAll('#esterilizado-choices .choice-btn').forEach(function (btn) {
@@ -174,6 +175,40 @@ var KCAL_PER_100G = 136;
     return 2;
   }
 
+  // Presentaciones disponibles del producto, de mayor a menor tamaño (en gramos)
+  var PACKAGE_SIZES = [600, 300];
+
+  function calcularPaquetes(gramos) {
+    var restante = gramos;
+    var conteo = {};
+
+    PACKAGE_SIZES.forEach(function (size) { conteo[size] = 0; });
+
+    PACKAGE_SIZES.forEach(function (size) {
+      var cantidad = Math.floor(restante / size);
+      if (cantidad > 0) {
+        conteo[size] = cantidad;
+        restante -= cantidad * size;
+      }
+    });
+
+    // Si sobra un residuo, se completa con un paquete más del tamaño más pequeño
+    if (restante > 0) {
+      var menorTamano = PACKAGE_SIZES[PACKAGE_SIZES.length - 1];
+      conteo[menorTamano] += 1;
+    }
+
+    var partes = [];
+    PACKAGE_SIZES.forEach(function (size) {
+      if (conteo[size] > 0) {
+        var etiqueta = conteo[size] === 1 ? 'paquete' : 'paquetes';
+        partes.push(conteo[size] + ' ' + etiqueta + ' de ' + size + 'g');
+      }
+    });
+
+    return partes.join(' + ');
+  }
+
   function mostrarResultado() {
     var peso = parseFloat(pesoInput.value);
     var etapa = getEtapa(edadEnMeses());
@@ -190,6 +225,7 @@ var KCAL_PER_100G = 136;
     resultGrams.textContent = gramos.toLocaleString('es-CO');
     resultPerMeal.textContent = porComida.toLocaleString('es-CO') + ' g';
     resultMealsCount.textContent = comidas;
+    resultPackages.innerHTML = 'Equivale aprox. a <strong>' + calcularPaquetes(gramos) + '</strong> al día';
   }
 
   function irAlSiguientePaso() {
