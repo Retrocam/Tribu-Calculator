@@ -253,12 +253,12 @@
   }
 
   .btn-primary {
-    background: var(--brand);
+    background: #7031a6;
     color: #ffffff;
   }
 
   .btn-primary:hover {
-    background: var(--brand-dark);
+    background: #48206b;
   }
 
   .btn-secondary {
