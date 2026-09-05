@@ -342,7 +342,7 @@
     padding: 12px;
     border: 1px solid var(--border);
     border-radius: var(--radius);
-    background: var(--surface-muted);
+    background: var(--surface);
     text-align: left;
   }
 
@@ -377,8 +377,9 @@
   .product-card-btn {
     flex-shrink: 0;
     padding: 8px 14px;
-    background: var(--brand);
-    color: #ffffff;
+    background: var(--surface);
+    color: #222;
+    border: 1.5px solid #222;
     border-radius: var(--radius);
     font-size: 13px;
     font-weight: 600;
@@ -387,5 +388,7 @@
   }
 
   .product-card-btn:hover {
-    background: var(--brand-dark);
+    background: #7031a6;
+    color: #ffffff;
+    border: 1.5px solid #7031a6;
   }

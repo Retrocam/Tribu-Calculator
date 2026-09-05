@@ -261,7 +261,7 @@ var KCAL_PER_100G = 136;
           '<p class="product-card-name">' + producto.nombre + '</p>' +
           '<p class="product-card-sub">' + cantidad + ' ' + (cantidad === 1 ? 'unidad' : 'unidades') + ' recomendadas</p>' +
         '</div>' +
-        '<a href="' + producto.url + '" target="_blank" rel="noopener" class="product-card-btn">Comprar</a>';
+        '<a href="' + producto.url + '" target="_blank" rel="noopener" class="product-card-btn">Ver</a>';
 
       productCardsContainer.appendChild(card);
     });
