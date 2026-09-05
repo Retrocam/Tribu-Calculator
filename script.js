@@ -179,30 +179,47 @@ var KCAL_PER_100G = 136;
   var PACKAGE_SIZES = [600, 300];
 
   function calcularPaquetes(gramos) {
-    var restante = gramos;
-    var conteo = {};
+    var sizes = PACKAGE_SIZES;
+    var best = null;
 
-    PACKAGE_SIZES.forEach(function (size) { conteo[size] = 0; });
-
-    PACKAGE_SIZES.forEach(function (size) {
-      var cantidad = Math.floor(restante / size);
-      if (cantidad > 0) {
-        conteo[size] = cantidad;
-        restante -= cantidad * size;
+    function evaluar(counts, total) {
+      if (total < gramos) return;
+      var totalCount = counts.reduce(function (a, b) { return a + b; }, 0);
+      var excess = total - gramos;
+      var mejorQueElActual =
+        !best ||
+        excess < best.excess ||
+        (excess === best.excess && totalCount < best.totalCount);
+      if (mejorQueElActual) {
+        best = { counts: counts.slice(), total: total, excess: excess, totalCount: totalCount };
       }
-    });
-
-    // Si sobra un residuo, se completa con un paquete más del tamaño más pequeño
-    if (restante > 0) {
-      var menorTamano = PACKAGE_SIZES[PACKAGE_SIZES.length - 1];
-      conteo[menorTamano] += 1;
     }
 
+    function buscar(index, counts, total) {
+      // Cortar ramas que ya se pasan de más de un paquete extra del tamaño mayor
+      if (total > gramos + sizes[0]) return;
+
+      if (index === sizes.length) {
+        evaluar(counts, total);
+        return;
+      }
+
+      var maxCantidad = Math.ceil(gramos / sizes[index]) + 1;
+      for (var c = 0; c <= maxCantidad; c++) {
+        counts.push(c);
+        buscar(index + 1, counts, total + c * sizes[index]);
+        counts.pop();
+      }
+    }
+
+    buscar(0, [], 0);
+
     var partes = [];
-    PACKAGE_SIZES.forEach(function (size) {
-      if (conteo[size] > 0) {
-        var etiqueta = conteo[size] === 1 ? 'paquete' : 'paquetes';
-        partes.push(conteo[size] + ' ' + etiqueta + ' de ' + size + 'g');
+    sizes.forEach(function (size, i) {
+      var cantidad = best.counts[i];
+      if (cantidad > 0) {
+        var etiqueta = cantidad === 1 ? 'paquete' : 'paquetes';
+        partes.push(cantidad + ' ' + etiqueta + ' de ' + size + 'g');
       }
     });
 
