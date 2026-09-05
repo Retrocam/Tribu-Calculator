@@ -21,6 +21,7 @@ var KCAL_PER_100G = 136;
   var resultPerMeal = document.getElementById('result-per-meal');
   var resultMealsCount = document.getElementById('result-meals-count');
   var resultPackages = document.getElementById('result-packages');
+  var productCardsContainer = document.getElementById('product-cards');
 
   // Botones de esterilización
   document.querySelectorAll('#esterilizado-choices .choice-btn').forEach(function (btn) {
@@ -178,6 +179,20 @@ var KCAL_PER_100G = 136;
   // Presentaciones disponibles del producto, de mayor a menor tamaño (en gramos)
   var PACKAGE_SIZES = [600, 300];
 
+  // Datos de cada presentación para armar la card de producto (imagen y link de compra)
+  var PRODUCTS = {
+    600: {
+      nombre: 'Tribu Natural de La Sabana · 600 g',
+      imagen: 'images/humedosabana600g.webp',
+      url: 'https://tribunaturalpets.com/collections/alimento-para-perro/products/natural-de-la-sabana-600-gramos'
+    },
+    300: {
+      nombre: 'Tribu Natural de La Sabana · 300 g',
+      imagen: 'images/humedosabana300g.webp',
+      url: 'https://tribunaturalpets.com/collections/alimento-humedo-para-perro/products/tribu-natural-de-la-sabana'
+    }
+  };
+
   function calcularPaquetes(gramos) {
     var sizes = PACKAGE_SIZES;
     var best = null;
@@ -215,15 +230,41 @@ var KCAL_PER_100G = 136;
     buscar(0, [], 0);
 
     var partes = [];
+    var conteoPorTamano = {};
     sizes.forEach(function (size, i) {
       var cantidad = best.counts[i];
+      conteoPorTamano[size] = cantidad;
       if (cantidad > 0) {
         var etiqueta = cantidad === 1 ? 'paquete' : 'paquetes';
         partes.push(cantidad + ' ' + etiqueta + ' de ' + size + 'g');
       }
     });
 
-    return partes.join(' + ');
+    return { texto: partes.join(' + '), conteo: conteoPorTamano };
+  }
+
+  function renderizarProductCards(conteoPorTamano) {
+    productCardsContainer.innerHTML = '';
+
+    PACKAGE_SIZES.forEach(function (size) {
+      var cantidad = conteoPorTamano[size];
+      if (!cantidad || cantidad <= 0) return;
+
+      var producto = PRODUCTS[size];
+      if (!producto) return;
+
+      var card = document.createElement('div');
+      card.className = 'product-card';
+      card.innerHTML =
+        '<img src="' + producto.imagen + '" alt="' + producto.nombre + '" class="product-card-img">' +
+        '<div class="product-card-info">' +
+          '<p class="product-card-name">' + producto.nombre + '</p>' +
+          '<p class="product-card-sub">' + cantidad + ' ' + (cantidad === 1 ? 'unidad' : 'unidades') + ' recomendadas</p>' +
+        '</div>' +
+        '<a href="' + producto.url + '" target="_blank" rel="noopener" class="product-card-btn">Comprar</a>';
+
+      productCardsContainer.appendChild(card);
+    });
   }
 
   function mostrarResultado() {
@@ -242,7 +283,10 @@ var KCAL_PER_100G = 136;
     resultGrams.textContent = gramos.toLocaleString('es-CO');
     resultPerMeal.textContent = porComida.toLocaleString('es-CO') + ' g';
     resultMealsCount.textContent = comidas;
-    resultPackages.innerHTML = 'Equivale aprox. a <strong>' + calcularPaquetes(gramos) + '</strong> al día';
+
+    var paquetes = calcularPaquetes(gramos);
+    resultPackages.innerHTML = 'Equivale aprox. a <strong>' + paquetes.texto + '</strong> al día';
+    renderizarProductCards(paquetes.conteo);
   }
 
   function irAlSiguientePaso() {
